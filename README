@@ -1,3 +1,5 @@
 This project is about solving the CartPole problem (https://gym.openai.com/envs/CartPole-v0/) using deep Q-learning. 
 
-The main code is saved in "model.py" file. The best model is saved in "fittest_brain.h5". 
+The main code is saved in "train.py" file. The best model is saved in "fittest_brain.h5".
+
+Run "play.py" to see how the fittest model performs. 
