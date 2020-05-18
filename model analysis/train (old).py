@@ -7,7 +7,7 @@ from keras.models import load_model
 import time
 
 # Delete the existing model
-model_name = 'test_model.h5'
+model_name = 'fittest_model.h5'
 if os.path.exists(model_name):
     os.remove(model_name)
 
@@ -20,9 +20,9 @@ class Agent():
         self.exploration_rate = 0.3
         self.min_exloration_rate = 0.01
         self.exploration_rate_reduction = 0.8
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.0025
         self.discount_factor = 1
-        self.losing_penalty = -100
+        self.losing_penalty = 10
 
     # Create the model
     def create_brain(self):
@@ -55,20 +55,16 @@ class Agent():
                 q_values = self.brain.predict(observation).flatten()
                 if done:
                     target = copy.copy(initial_q_values)
-                    target_test = copy.copy(initial_q_values)
-                    target[action] = initial_q_values[action] + self.learning_rate * (self.losing_penalty - initial_q_values[action])
-                    target_test[action] = initial_q_values[action] + self.learning_rate * (initial_q_values[action] + self.losing_penalty)
-                    self.memory.append((initial_observation, initial_q_values,  q_values, target, target_test, action, reward, done))
+                    target[action] = initial_q_values[action] + self.learning_rate * (initial_q_values[action] - self.losing_penalty)
+                    self.memory.append((initial_observation, initial_q_values, observation, q_values, target, action, reward, done))
                     break
                 else:
                     target = copy.copy(initial_q_values)
-                    target_test = copy.copy(initial_q_values)
-                    target[action] = initial_q_values[action] + self.learning_rate * (reward + self.discount_factor * np.max(q_values) - initial_q_values[action])
-                    target_test[action] = initial_q_values[action] + self.learning_rate * (initial_q_values[action] - (reward + self.discount_factor * np.max(q_values)))
-                    self.memory.append((initial_observation, initial_q_values, q_values, target, target_test, action, reward, done))
+                    target[action] = initial_q_values[action] + self.learning_rate * (initial_q_values[action] - (reward + self.discount_factor * np.max(q_values)))
+                    self.memory.append((initial_observation, initial_q_values, observation, q_values, target, action, reward, done))
 
     # Used collected data from the environment to learn
-    def learn_from_memory(self, batch_size=10, num_epochs=1):
+    def learn_from_memory(self, batch_size=10, num_epochs=2):
         self.memory = np.asarray(self.memory)
         x = self.memory[:, 0]
         y = self.memory[:, 4]
